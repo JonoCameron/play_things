@@ -1,7 +1,7 @@
 # A very simple Makefile
 
 CC = gcc
-CCFLAGS = -I
+CCFLAGS = -I -g -static
 
 hello_world: hello_world.o main.o
 	$(CC) -o hello_world hello_world.o main.o

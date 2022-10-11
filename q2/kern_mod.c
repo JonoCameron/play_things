@@ -19,8 +19,7 @@ static char procfs_buffer[PROCFS_MAX_SIZE];
 static unsigned long procfs_buffer_size = 0;
 
 static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t buffer_length, loff_t *offset){
-	char s[13] = "HelloWorld!\n";
-	char string[13] = "butthole\n";
+	
 	int len = sizeof(procfs_buffer);
 	ssize_t ret = len; 
 	

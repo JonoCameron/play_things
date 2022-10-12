@@ -11,6 +11,7 @@ b. We monitor our new /proc file for when it is read from and written to. [X]
 a. We store the things written to this new file in a linked list data structure.
 	- Each new write is a new entry to the linked list. [ ]
 	- The linked list does not need to be fancy. From the spec, we need to be able to append to the linked list, and print it out on a read of the /proc file. [ ]
+	- For simplicities sake, we will write all of our linked list functionality in kern_mod.c
 
 4. Each read from the proc will fill the read buffer with list entries up to the read length (buffer size). [ ]
 a. I assume this means that we print the list to stdout? Or we can do other things with the read buffer, like pipe to another process or write to another file.

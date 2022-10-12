@@ -36,22 +36,48 @@ void append(struct node** head_node, char data[NODE_DATA_SIZE]);
 void delete(struct node** head_node){
 	struct node* tmp1 = *head_node;
 	struct node* tmp2;
-	while(tmp1->next != NULL){
-		tmp2 = tmp1;
-		tmp1 = tmp1->next;
-		kfree(tmp2);
+	printk(KERN_INFO "You are in delete()\n");
+	if(tmp1 == NULL){
+		printk(KERN_INFO "if statement\n");
+		kfree(tmp1);
+	}else if(tmp1->next == NULL){
+		printk(KERN_INFO "else if\n");
+		kfree(tmp1);
+	}else{
+		while(tmp1->next != NULL){
+			printk(KERN_INFO "else statement\n");
+			tmp2 = tmp1;
+			tmp1 = tmp1->next;
+			kfree(tmp2);
+		}
+		kfree(tmp1);
 	}
-
-	kfree(tmp1);
 };
 
 /* Add each element to a read buffer that can be printed, piped etc. */
-void print_list(struct node** head_node);
+void print_list(struct node** head_node){
+	struct node* tmp = *head_node;
+	int i = 0;
+	char tmpbuff[NODE_DATA_SIZE];
+	if(tmp == NULL){
+		printk(KERN_INFO "Empty list lol\n");
+		return;
+	}
+	do{
+		i++;
+		strncpy(tmpbuff, tmp->data, NODE_DATA_SIZE);
+		pr_info("%s, \n", tmpbuff);
+		tmp = tmp->next;
+		pr_info("%d \n", i); 
+	}while(tmp != NULL);
+};
 
 static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t buffer_length, loff_t *offset){
 	
 	int len = sizeof(procfs_buffer);
 	ssize_t ret = len; 
+
+	print_list(&head_node);
 	
 	if (*offset >= len || copy_to_user(buffer, procfs_buffer, sizeof(procfs_buffer))){
 		pr_info("copy_to_user failed\n");
@@ -65,6 +91,9 @@ static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t 
 
 static ssize_t file_write(struct file *file, const char __user *buffer, size_t len, loff_t *off){
 	struct node* tmp = (struct node*)kmalloc(sizeof(struct node), GFP_KERNEL);
+	struct node* last;
+	last = head_node;
+
 	procfs_buffer_size = len;
 
 	if(procfs_buffer_size > NODE_DATA_SIZE){
@@ -75,15 +104,17 @@ static ssize_t file_write(struct file *file, const char __user *buffer, size_t l
 	}
 
 	strncpy(tmp->data, procfs_buffer, NODE_DATA_SIZE);
-	
+	tmp->next = NULL;
+
 	/* If linked list is empty */
 	if(head_node == NULL){
 		head_node = tmp;
-	}/*else{
-		while(head_node->next != NULL){
-			head_node = head_node->next;
+	}else{
+		while(last->next != NULL){
+			last = last->next;
 		}
-	}*/
+		last->next = tmp;
+	}
 
 	procfs_buffer[procfs_buffer_size & (NODE_DATA_SIZE - 1)] = '\0';
 	*off += procfs_buffer_size;
@@ -114,6 +145,7 @@ static int __init kern_mod_init(void)
 
 static void __exit kern_mod_exit(void)
 {
+	printk(KERN_INFO "You are in kern_mod_exit\n");
 	delete(&head_node);
 	remove_proc_entry(PROCFS_NAME, NULL);
 	printk(KERN_INFO "Goodbye, kernel world!\n");

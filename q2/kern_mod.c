@@ -17,6 +17,7 @@ static struct proc_dir_entry *kern_mod;
 static char procfs_buffer[PROCFS_MAX_SIZE];
 static unsigned long procfs_buffer_size = 0;
 static int list_length = 0;
+static char* out_buf;
 
 struct node{
 	struct node *next;
@@ -70,29 +71,46 @@ void print_list(struct node** head_node){
 	}while(tmp != NULL);
 };
 
-static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t buffer_length, loff_t *offset){
-		
-	int len = sizeof(procfs_buffer);
-	ssize_t ret = len; 
+void assemble_buffer(void){
+	printk(KERN_INFO "this has been fun\n");
+	out_buf = (char*)kmalloc(sizeof(NODE_DATA_SIZE * list_length), GFP_KERNEL);
+	printk(KERN_INFO "it did not break\n");
+}
+
+static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t len, loff_t *offset){
+	ssize_t bytes; 
 	struct node* tmp;
-	tmp = head_node;
-	print_list(&head_node);
 	
+	tmp = head_node;
+//	print_list(&head_node);
+//	printk(KERN_INFO "in file_read\n");
+	
+	assemble_buffer();
+
+	if(len < (NODE_DATA_SIZE-(*offset))){
+		len = (NODE_DATA_SIZE-(*offset));
+	}
+	bytes = len;
 	if(tmp == NULL){
 		printk(KERN_INFO "Empty list\n");
-	}else{
-		do{
-			if (*offset >= len || copy_to_user(buffer, head_node->data, NODE_DATA_SIZE)){
-				pr_info("copy_to_user failed\n");
-				ret = 0;
-			}else{
-				//pr_info("procfile read %s\n", file_pointer->f_path.dentry->d_name.name); 
-				*offset += len; 
-			}
-		}while(tmp != NULL);
+		return 0;
 	}
-	return ret; 
-	
+	do{
+		printk(KERN_INFO "do loop\n");
+//		memset(buffer,0,len);
+		if (/**offset >= len || */ copy_to_user(buffer, tmp->data, sizeof(tmp->data))){
+			pr_info("copy_to_user failed\n");
+			return -EFAULT;
+		}else{
+			pr_info("procfile read %s from %s\n", tmp->data, file_pointer->f_path.dentry->d_name.name); 
+			*offset += bytes; 
+		}
+		tmp = tmp->next;
+//		printk(KERN_INFO "tmp next\n");
+		
+	}while(tmp != NULL);
+//	printk(KERN_INFO "left the loop\n");
+	return bytes; 
 } 
 
 static ssize_t file_write(struct file *file, const char __user *buffer, size_t len, loff_t *off){
@@ -106,7 +124,7 @@ static ssize_t file_write(struct file *file, const char __user *buffer, size_t l
 	if(procfs_buffer_size > NODE_DATA_SIZE){
 		procfs_buffer_size = NODE_DATA_SIZE;
 	}
-	if(copy_from_user(tmp->data, buffer, NODE_DATA_SIZE)){
+	if(copy_from_user(tmp->data, buffer, len)){
 		return -EFAULT;
 	}
 

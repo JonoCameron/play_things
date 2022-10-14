@@ -20,6 +20,7 @@ static int bytes_written = 0;
 struct node{
     struct node *next;
     char data[NODE_DATA_SIZE];
+    int num;
 };
 
 static struct node* head_node = NULL;
@@ -59,11 +60,25 @@ void print_list(struct node** head_node){
 
 void assemble_buffer(char* buffer){
     struct node* tmp = head_node;
-    char s[6] = "hello\n";
-    memcpy(buffer, head_node->data, bytes_written);
-    bytes_written += 6;
-    pr_info("Break before strcat(). Bytes written: %d\n", bytes_written);
-    strcat(buffer, s);
+    // memset(buffer, '\0', (bytes_written * sizeof(char)));
+    // tmp->data[tmp->num - 1] = '\0';
+    // pr_info("tmp->data on its own: %s\n", tmp->data);
+    strncpy(buffer, tmp->data, tmp->num);
+    tmp = tmp->next;
+    if(tmp == NULL){
+        return;
+    }else{
+        do{
+            // tmp->data[tmp->num - 1] = '\0';
+            // pr_info("tmp->data on its own: %s\n", tmp->data);
+            strncat(buffer, tmp->data, tmp->num);
+            tmp = tmp->next;
+        }while(tmp != NULL);
+    }
+    // bytes_written += 6;
+    // pr_info("Break before strcat(). Bytes written: %d\n", bytes_written);
+    // strcat(buffer, s);
+    pr_info("the whole string: %s\n", buffer);
     return;
 }
 
@@ -71,10 +86,20 @@ static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t 
     
 
     char s[13] = "HelloWorld!\n"; 
-    int length = sizeof(head_node->data); 
+    int length = sizeof(s); 
     ssize_t ret = length; 
     char* outbuffer = (char*)kmalloc(bytes_written * sizeof(char), GFP_KERNEL);
+    // memset(outbuffer, '\0', (bytes_written * sizeof(char)));
+    if(head_node == NULL){
+        pr_info("Empty node\n");
+        kfree(outbuffer);
+        return 0;
+    }
     assemble_buffer(outbuffer);
+    length = sizeof(outbuffer);
+    // print_list(&head_node);
+    // pr_info("left assemble_buffer()\n");
+    // pr_info("printing outbuffer to dmesg: %s\n", outbuffer);
     if (*offset >= length || copy_to_user(buffer, outbuffer, bytes_written)) { 
         pr_info("copy_to_user failed\n"); 
         ret = 0; 
@@ -82,29 +107,9 @@ static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t 
         pr_info("procfile read %s\n", file_pointer->f_path.dentry->d_name.name); 
         *offset += length; 
     } 
+    kfree(outbuffer);
+    //ret = length;
     return ret; 
-
-    // ssize_t bytes;
-    // struct node* tmp = head_node;
-
-    // char outbuffer[4] = "pain";
-
-    // // if(tmp == NULL){
-    // //     printk(KERN_INFO "Empty list\n");
-    // //     return 0;
-    // // }
-   
-    // len = sizeof(outbuffer);
-    // bytes = len;
-    // print_list(&head_node);
-    // if(*offset >= len || copy_to_user(buffer, outbuffer, len)){
-    //     pr_info("copy_to_user failed\n");
-    //     return -EFAULT;
-    // }else{
-	// 	pr_info("procfile read %s from %s\n", tmp->data, file_pointer->f_path.dentry->d_name.name); 
-	// 	*offset += bytes;
-	// }
-    // return bytes;
 }
 
 static ssize_t file_write(struct file *file, const char __user *buffer, size_t len, loff_t *offset){
@@ -119,8 +124,9 @@ static ssize_t file_write(struct file *file, const char __user *buffer, size_t l
         return -EFAULT;
     }
 
-    tmp->data[len-1] = '\n';
+    tmp->data[len-1] = '\0';
     tmp->next = NULL;
+    tmp->num = len;
 
     if(head_node == NULL){
         head_node = tmp;

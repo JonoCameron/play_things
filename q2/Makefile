@@ -1,6 +1,6 @@
 # A very simple Makefile
 
-obj-m += kern_mod.o
+obj-m += mymodule.o
 KDIR:=/lib/modules/$(shell uname -r)/build
  
 all:

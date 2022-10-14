@@ -3,6 +3,8 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/proc_fs.h>
+#include <linux/string.h>
+#include <linux/slab.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Jonathan Cameron <jacc@bu.edu>");
@@ -26,26 +28,16 @@ struct node{
 
 static struct node *head_node = NULL;
 
-/* Initialise linked list. Will be called once per module loading */
-void initialise(char data[NODE_DATA_SIZE]);
-
-/* Append new buffer to list in new node. */
-void append(struct node** head_node, char data[NODE_DATA_SIZE]);
-
 /* Delete entire list on module cleanup */
 void delete(struct node** head_node){
 	struct node* tmp1 = *head_node;
 	struct node* tmp2;
-//	printk(KERN_INFO "You are in delete()\n");
 	if(tmp1 == NULL){
-//		printk(KERN_INFO "if statement\n");
 		kfree(tmp1);
 	}else if(tmp1->next == NULL){
-//		printk(KERN_INFO "else if\n");
 		kfree(tmp1);
 	}else{
 		while(tmp1->next != NULL){
-//			printk(KERN_INFO "else statement\n");
 			tmp2 = tmp1;
 			tmp1 = tmp1->next;
 			kfree(tmp2);
@@ -71,21 +63,34 @@ void print_list(struct node** head_node){
 	}while(tmp != NULL);
 };
 
-void assemble_buffer(void){
-	printk(KERN_INFO "this has been fun\n");
-	out_buf = (char*)kmalloc(sizeof(NODE_DATA_SIZE * list_length), GFP_KERNEL);
-	printk(KERN_INFO "it did not break\n");
+void assemble_buffer(char* array){
+
+	struct node* tmp = head_node;
+
+//	out_buf = (char*)kzalloc(256, GFP_KERNEL);
+//	pr_info("size of out_buf: %ld\n", sizeof(out_buf));
+
+//	memcpy(out_buf, tmp->data, NODE_DATA_SIZE);
+	tmp = tmp->next;
+	if(tmp == NULL){
+		return;
+	}
+
+	do{
+		pr_info("out buf is this: %s\nhead_node->data is this long: %ld", out_buf, sizeof(head_node->data));
+//		strcat(out_buf, tmp->data);
+		tmp = tmp->next;
+	}while(tmp != NULL);
 }
 
 static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t len, loff_t *offset){
 	ssize_t bytes; 
 	struct node* tmp;
-	
+	char out_buffer[list_length * NODE_DATA_SIZE];
+	pr_info("list_length * NODE_DATA_SIZE = %d\n", sizeof(list_length * NODE_DATA_SIZE));
 	tmp = head_node;
 //	print_list(&head_node);
-//	printk(KERN_INFO "in file_read\n");
-	
-	assemble_buffer();
+//	assemble_buffer(out_buffer);	
 
 	if(len < (NODE_DATA_SIZE-(*offset))){
 		len = (NODE_DATA_SIZE-(*offset));
@@ -95,21 +100,16 @@ static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t 
 		printk(KERN_INFO "Empty list\n");
 		return 0;
 	}
-	do{
-		printk(KERN_INFO "do loop\n");
-//		memset(buffer,0,len);
-		if (/**offset >= len || */ copy_to_user(buffer, tmp->data, sizeof(tmp->data))){
-			pr_info("copy_to_user failed\n");
-			return -EFAULT;
-		}else{
-			pr_info("procfile read %s from %s\n", tmp->data, file_pointer->f_path.dentry->d_name.name); 
-			*offset += bytes; 
-		}
-		tmp = tmp->next;
-//		printk(KERN_INFO "tmp next\n");
-		
-	}while(tmp != NULL);
-//	printk(KERN_INFO "left the loop\n");
+	
+
+	if (/**offset >= len || */ copy_to_user(buffer, out_buf, sizeof(tmp->data))){
+		pr_info("copy_to_user failed\n");
+		return -EFAULT;
+	}else{
+		pr_info("procfile read %s from %s\n", tmp->data, file_pointer->f_path.dentry->d_name.name); 
+		*offset += bytes;
+	}
+	kfree(out_buffer);
 	return bytes; 
 } 
 
@@ -127,9 +127,7 @@ static ssize_t file_write(struct file *file, const char __user *buffer, size_t l
 	if(copy_from_user(tmp->data, buffer, len)){
 		return -EFAULT;
 	}
-
-//	strncpy(tmp->data, procfs_buffer, NODE_DATA_SIZE);
-	tmp->data[NODE_DATA_SIZE - 1] = '\n';
+	tmp->data[NODE_DATA_SIZE - 1] = '\0';
 	tmp->next = NULL;
 
 	/* If linked list is empty */
@@ -144,7 +142,6 @@ static ssize_t file_write(struct file *file, const char __user *buffer, size_t l
 
 	procfs_buffer[procfs_buffer_size & (NODE_DATA_SIZE - 1)] = '\0';
 	*off += procfs_buffer_size;
-//	pr_info("procfile write %s and %s\n", procfs_buffer, head_node->data);
 	
 	list_length++;
 	pr_info("THE LENGTH OF THIS LIST IS: %d\n", list_length);

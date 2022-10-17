@@ -42,54 +42,31 @@ void delete (struct node** head_node){
     }
 };
 
-void print_list(struct node** head_node){
-	struct node* tmp = *head_node;
-	
-	char tmpbuff[NODE_DATA_SIZE];
-	if(tmp == NULL){
-		printk(KERN_INFO "Empty list lol\n");
-		return;
-	}
-	do{
-		memset(tmpbuff, '\0', NODE_DATA_SIZE);
-		strncpy(tmpbuff, tmp->data, NODE_DATA_SIZE);
-		pr_info("%s ", tmpbuff);
-		tmp = tmp->next; 
-	}while(tmp != NULL);
-};
-
 void assemble_buffer(char* buffer){
     struct node* tmp = head_node;
-    // memset(buffer, '\0', (bytes_written * sizeof(char)));
-    // tmp->data[tmp->num - 1] = '\0';
-    // pr_info("tmp->data on its own: %s\n", tmp->data);
+    tmp->data[tmp->num] = '\n';
     strncpy(buffer, tmp->data, tmp->num);
     tmp = tmp->next;
     if(tmp == NULL){
         return;
     }else{
         do{
-            // tmp->data[tmp->num - 1] = '\0';
-            // pr_info("tmp->data on its own: %s\n", tmp->data);
+            tmp->data[tmp->num] = '\n';
             strncat(buffer, tmp->data, tmp->num);
             tmp = tmp->next;
         }while(tmp != NULL);
     }
-    // bytes_written += 6;
-    // pr_info("Break before strcat(). Bytes written: %d\n", bytes_written);
-    // strcat(buffer, s);
+    buffer[bytes_written - 1] = '\n';
     pr_info("the whole string: %s\n", buffer);
     return;
-}
+};
 
 static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t len, loff_t *offset){
     
-
-    char s[13] = "HelloWorld!\n"; 
-    int length = sizeof(s); 
-    ssize_t ret = length; 
     char* outbuffer = (char*)kmalloc(bytes_written * sizeof(char), GFP_KERNEL);
-    // memset(outbuffer, '\0', (bytes_written * sizeof(char)));
+    int length = (bytes_written * sizeof(char)); 
+    ssize_t ret = length; 
+    
     if(head_node == NULL){
         pr_info("Empty node\n");
         kfree(outbuffer);
@@ -97,9 +74,7 @@ static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t 
     }
     assemble_buffer(outbuffer);
     length = sizeof(outbuffer);
-    // print_list(&head_node);
-    // pr_info("left assemble_buffer()\n");
-    // pr_info("printing outbuffer to dmesg: %s\n", outbuffer);
+    
     if (*offset >= length || copy_to_user(buffer, outbuffer, bytes_written)) { 
         pr_info("copy_to_user failed\n"); 
         ret = 0; 
@@ -108,7 +83,6 @@ static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t 
         *offset += length; 
     } 
     kfree(outbuffer);
-    //ret = length;
     return ret; 
 }
 

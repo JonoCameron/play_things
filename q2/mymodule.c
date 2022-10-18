@@ -44,7 +44,7 @@ void delete (struct node** head_node){
 
 void assemble_buffer(char* buffer){
     struct node* tmp = head_node;
-
+    tmp->data[tmp->num] = '\n';
     strncpy(buffer, tmp->data, tmp->num);
     tmp = tmp->next;
     
@@ -52,23 +52,22 @@ void assemble_buffer(char* buffer){
         return;
     }else{
         do{
+            tmp->data[tmp->num] = '\n';
             strncat(buffer, tmp->data, tmp->num);
             tmp = tmp->next;
         }while(tmp != NULL);
     }
-
+    buffer[bytes_written - 1] = '\n';
     pr_info("the whole string: %s\n", buffer);
     return;
-}
+};
 
 static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t len, loff_t *offset){
     
-
-    char s[13] = "HelloWorld!\n"; // this is here so copy_to_user works... or does it?
-    int length = sizeof(s); 
-    ssize_t ret = length; 
     char* outbuffer = (char*)kmalloc(bytes_written * sizeof(char), GFP_KERNEL);
-
+    int length = (bytes_written * sizeof(char)); 
+    ssize_t ret = length; 
+    
     if(head_node == NULL){
         pr_info("Empty node\n");
         kfree(outbuffer);
@@ -85,7 +84,6 @@ static ssize_t file_read(struct file *file_pointer, char __user *buffer, size_t 
         *offset += length; 
     } 
     kfree(outbuffer);
-    
     return ret; 
 }
 

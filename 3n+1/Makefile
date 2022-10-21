@@ -7,4 +7,4 @@ main: main.o
 	$(CC) -o main main.o
 
 clean:
-	rm -f hello_world *.o
+	rm -f main *.o

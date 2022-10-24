@@ -8,7 +8,8 @@ class node{
     public:
     int key;
     int key_hash;
-    char value[VALUE_LENGTH];
+    string value(VALUE_LENGTH, ' ');
+    // char value[VALUE_LENGTH];
     node* key_above = NULL;
     node* key_below = NULL;
     node* next_node = NULL;
@@ -21,7 +22,7 @@ static class node* head_node = NULL;
 void hello_library();
 
 /* Create node, initialise fields, link to the rest of the list. */
-void push_key(int key, char** value);
+void push_key(int key, string &value);
 
 /* Traverse key node, then print each value.
  *

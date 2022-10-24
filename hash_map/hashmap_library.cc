@@ -5,14 +5,14 @@ void hello_library(){
     return;
 }
 
-void push_key(int key, char* value){
+void push_key(int key, string &value){
     class node* new_node = (node*)malloc(sizeof(node));
     class node* tmp = head_node;
     class node* prev;
 
     new_node->key = key;
-    memcpy(new_node->value, value, VALUE_LENGTH);
-    
+    // memcpy(new_node->value, value, VALUE_LENGTH);
+    new_node->value = value;
     if(head_node == NULL){
         head_node = new_node;
         return;

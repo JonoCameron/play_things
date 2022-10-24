@@ -30,7 +30,11 @@
 //#include <iostream>
 #include "hashmap_library.h"
 
+using namespace std;
+
 int main(){
+    string var = "hello";
     hello_library();
+    push_key(5, var);
     return 0;
 }

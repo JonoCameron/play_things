@@ -18,6 +18,18 @@
 
 ### What are the errors in this code?
 
+gets() takes unfiltered input and that leaves it open to taking arguments like `'"put 6 %n in c ", &c'` using the `%n` character. This will put 6 in the variable `c`.
+
+We can even give it things like "%x %x %x %x..." which will cause the program to start printing values from the stack, hence a memory leak vulnerability.
+
+How about `'"%x", &ret'`? This returns the address of `ret`. Can we do something with this? `'"%lx", &ret'` tells us a little more.
+
+How about we find where our stuff is being written on the stack.`"AAAABBBB %<num>$lx"`
+
+Sure enough, `"AAAABBBB %10$lx"` returns to us `"AAAABBBB 4242424241414141"`
+
+So I guess the goal is to write some shellcode to an address and then just there when we return from the function?
+
 Using gets() and strcpy() in getinput can cause a buffer overflow if the input from the user is too large.
 
 Despite ASLR and PIE mitigating the possiblility of a stack buffer overflow, it is still possible to achieve privilege escalation from this code, by bypassing these two. This can be done by leaking the offset between something like libc and our process in GDB

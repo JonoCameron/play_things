@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     char *command;
 
     name = getinput("Welcome, what is your name: ");
-    
+
     asprintf(&friendlyprompt, "%s, what is your favourite ice cream: ", name);
 
     icecream = getinput(friendlyprompt);

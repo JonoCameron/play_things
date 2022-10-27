@@ -36,5 +36,6 @@ int main(){
     string var = "hello";
     hello_library();
     push_key(5, var);
+    cout << "returned from push_key\n";
     return 0;
 }

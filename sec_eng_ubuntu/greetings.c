@@ -12,6 +12,15 @@
 #include <string.h>
 #include <stdlib.h>
 
+
+/*
+ * This function here is a dummy that I used to explore the execution 
+ * path of the process whilst investigating the process with GDB.
+ */
+void hijack(void){
+    system("/bin/sh");
+}
+
 char upper(char c) {
     return c & ~0x20;
 }
@@ -60,7 +69,8 @@ int main(int argc, char* argv[]) {
 
     icecream = getinput(friendlyprompt);
 
-    asprintf(&friendlyprompt, "%s! I love %s ice cream too. What's ""your favourite pizza, %s? ", uppercase(icecream), icecream, name);
+    asprintf(&friendlyprompt, "%s! I love %s ice cream too. What's ""your favourite pizza, %s? ",\
+        uppercase(icecream), icecream, name);
 
     pizza = getinput(friendlyprompt);
 

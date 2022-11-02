@@ -39,6 +39,18 @@ Since we can control the trusted service process, we should make sure that this 
 
 ### What are the errors in this code?
 
+There are calls to malloc() but no calls to free() for the memory allocated on the heap for the buffers the program handles.
+
+### What threat model is appropriate for this code?
+
+The code is severe because it has the opportunity to have its execution hijacked. This is bad because if it has higher privileges than the user running it, they can use it to gain an escalation in privilege by exploiting the code.
+
+### What threat model would you consider if this program was exposed to the internet?
+
+If this code was exposed to the internet it should be removed immediately, since it would allow an attacker to remotely hijack the host machine of the process.
+
+### What test cases would you use to test this program?
+
 gets() takes unfiltered input and that leaves it open to taking arguments like `'"put 6 %n in c ", &c'` using the `%n` character. This will put 6 in the variable `c`.
 
 We can even give it things like "%x %x %x %x..." which will cause the program to start printing values from the stack, hence a memory leak vulnerability.
@@ -53,34 +65,40 @@ We need to remember that the first 6 arguments are passed to functions via regis
 
 I think we have to overwrite the value of `<system@plt>` or `<exit@plt>` to an address we own.
 
-So I guess the goal is to write some shellcode to an address and then just there when we return from the function?
+So I guess the goal is to write some shellcode to an address and then just there when we return from the function? Not quite...
 
-Using gets() and strcpy() in getinput can cause a buffer overflow if the input from the user is too large.
+We want to overwrite the GOT entry for `exit(0)` which will take us to a function or other process we control. For sake of proving a concept, I will start with hijacking the process with a function I compiled into the program. It will not be called by the normal execution flow and will look like this:
 
-Despite ASLR and PIE mitigating the possiblility of a stack buffer overflow, it is still possible to achieve privilege escalation from this code, by bypassing these two. This can be done by leaking the offset between something like libc and our process in GDB
+`void hijack(void){`
+    `printf("Process hijacked...\n");`
+    `system("/bin/sh");`
+`}`
 
-`$ gdb greetings`
+We can even start by calling this function in GDB by changing variables in the debugger.
 
-`$ break main`
+In GDB 
+`(gdb) x hijack`
+> 0x4012af <hijack>:	0xe5894855
 
-`$ run`
+So `hijack()` starts at 0x4012af.
 
-`$ info proc mappings`
+`(gdb) disas main`
+...
+>0x00000000004013ec <+300>:	call   0x4010a0 <exit@plt>
 
-`$ cat payload.bin - | ./greetings`
+`(gdb) disas 0x4010a0`
+>0x00000000004010a0 <+0>:	jmp    *0x2faa(%rip)        # 0x404050 <exit@got.plt>
 
-There are calls to malloc() but no calls to free() to free the memory allocated on the heap for the buffers the program handles.
+`(gdb) x 0x404050`
+> 0x404050 <exit@got.plt>:	0x004010a6
 
-### What threat model is appropriate for this code?
+And `exit@got.plt` lives at 0x404050.
 
-### What threat model would you consider if this program was exposed to the internet?
+`(gdb) set {int}0x404050=0x4012af`, and hit continue, we will spawn a shell from hijack within GDB.
 
-### What test cases would you use to test this program?
+Our address for `exit(0)` is at 0x404050 which is `\x50\x40\x40` in little endian, since I'm working on intel architecture. This ends up being `P@@ %8$n` to write to that address. It causes a SEGFAULT which means that somewhere an address is being changed, or that we are trying to access an illegal address. (I suspect the latter). `P@@ %8$lx` shows that what is printed to a register is actually `20404050`, which is not correct. `\x20` is a space character, which means we need to experiment with the padding.
+
+I am time-boxing this exercise since I have spent enough time examining the code with GDB.
 
 ### Bonus: Rewrite this code to address the issues you've identified. What choices need to be addressed with the rewrite? What changes in your choices if this program is a simple tool for yourself versus if this is part of a larger product you're distributing to others? 
 
-
-Plan of action.
-- Do steps 1 and 2, the vulnerability research and the design review.
-- Review code and rewrite it so it is safer. 
-- If it is possible, exploit the code.

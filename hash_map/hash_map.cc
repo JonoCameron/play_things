@@ -9,7 +9,7 @@ int main(){
     int HC_checksum = 27;
     int test_checksum;
 
-    string var = "hello";
+    string var = "bonjour";
     test_checksum = calc_checksum(var);
 
     compression_number = &i;

@@ -91,7 +91,7 @@ int* compress(int checksum, int* pIter){
         return pIter;
     }
     if(checksum < 1){
-        cout << "Somehow, your input resulted in a checksum of -1\n";
+        cout << "Somehow, your input resulted in a checksum of 0 or -1\n";
         return pIter; 
     }
 

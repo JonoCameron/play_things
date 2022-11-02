@@ -8,7 +8,7 @@ class node{
     public:
     int key;
     int key_hash;
-    string value(VALUE_LENGTH, ' ');
+    string value;
     // char value[VALUE_LENGTH];
     node* key_above = NULL;
     node* key_below = NULL;

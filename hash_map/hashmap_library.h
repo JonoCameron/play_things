@@ -26,7 +26,7 @@ class value_node{
 };
 
 /* Declare a head bucket which will be the entry point to the hash table. */
-class bucket_node* entry_point = NULL;
+//extern bucket_node* entry_point;
 
 ///////////////////////////////////////////////////////////////////////////
 /* Functions for linked list */
@@ -36,7 +36,7 @@ void hello_library();
 
 /* Print functions */
 
-int print_map();
+int print_map(bucket_node* entry_point);
 int print_buckets();
 int print_compression_number();
 
@@ -50,7 +50,7 @@ int delete_bucket(bucket_node* head_node);
 /* Add elements functions */
 
 int add_bucket(int compression_number);
-int add_value(string &value);
+int add_value(bucket_node* entry_point, string &value);
 
 
 ///////////////////////////////////////////////////////////////////////////

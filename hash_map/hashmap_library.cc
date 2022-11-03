@@ -1,6 +1,5 @@
 #include "hashmap_library.h"
 
-
 void hello_library(){
     cout << "Hello from the function library!\n";
     return;
@@ -14,7 +13,7 @@ void hello_library(){
  * ↓
  * etc
  */
-int print_map(){
+int print_map(bucket_node* entry_point){
     if(entry_point == NULL){
         cout << "The hash table is empty.\n";
         return -1;
@@ -63,7 +62,7 @@ int add_bucket(int compression_number);
  * The node will be added to its bucket by its compression number
  * but will be sorted in the bucket by its checksum.
  */
-int add_value(string &value){
+int add_value(bucket_node* entry_point, string &value){
     bucket_node* tmp_entry = entry_point;
     value_node* new_node;
 
@@ -77,13 +76,14 @@ int add_value(string &value){
 
         /* Fill data points */
         init_bucket(tmp_entry, value);
+
         init_value(new_node, value);
 
         /* Link the two nodes */
         bucket_to_node(tmp_entry, new_node);
 
         // /* Set entry_point to point to tmp_entry */
-        // entry_point = tmp_entry;
+        entry_point = tmp_entry;
 
         cout << "\nThe entry points key is: " << entry_point->compression_number << "\n";
         cout << "The entry point's address is: " << entry_point << "\n";
@@ -157,7 +157,6 @@ void init_bucket(bucket_node* tmp_entry, string &value){
     int key = calc_checksum(value);
 
     tmp_entry->compression_number = *(compress(key, compression_number));
-    entry_point = tmp_entry;
 
     return;
 };
@@ -177,7 +176,7 @@ void bucket_to_node(bucket_node* pBucket, value_node* pValue){
     pBucket->value = pValue;
     pValue->bucket = pBucket;
 
-    cout << "linking nodes... entry_point->compression_number: " << entry_point->compression_number << "\n";
+//    cout << "linking nodes... entry_point->compression_number: " << entry_point->compression_number << "\n";
 
     return;
 };

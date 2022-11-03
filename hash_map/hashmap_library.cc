@@ -1,31 +1,37 @@
 #include "hashmap_library.h"
 
-class bucket_node{
-    public:
-    int compression_number;
-    bucket_node* next_node = NULL;
-    bucket_node* prev_node = NULL;
-    value_node* value = NULL;
-};
-
-class value_node{
-    public:
-    int key;                                // The key/checksum of the value.
-    int compression_number;                 // The compressed key.
-    string value;                           // The given string.
-    value_node* next_node = NULL;           // The pointer to the next key-value pair in the LL, if it exists.
-    value_node* prev_node = NULL;           // The pointer to the previous key-value pair in the LL, if it exists.
-    bucket_node* bucket = NULL;         /* The list head, which points to the "bucket" this value is stored in. \
-                                             * always exist if this node exists.
-                                             */
-};
 
 void hello_library(){
     cout << "Hello from the function library!\n";
     return;
 }
 
-int print_map();
+/* Traverse key node, then print each value.
+ *
+ * [key1]->[value1]->[value2]->etc
+ * ↓
+ * [key2]->[value2]->etc
+ * ↓
+ * etc
+ */
+int print_map(){
+    if(entry_point == NULL){
+        cout << "The hash table is empty.\n";
+        return -1;
+    }
+
+    bucket_node* tmp_bucket = entry_point;
+    value_node* tmp_value = tmp_bucket->value;
+    do{
+        cout << "Key: " << entry_point->compression_number << " -> ";
+        do{
+            cout << tmp_value->value << " -> ";
+            tmp_value = tmp_value->next_node;
+        }while(tmp_value->next_node);
+        cout << "\n";
+    }while(tmp_bucket->next_node);
+    return 0;
+};
 
 /* Print out just the buckets that exist. The implementation of this
  * should probably be better that walking a LL. Maybe have a bitmap
@@ -57,25 +63,55 @@ int add_bucket(int compression_number);
  * The node will be added to its bucket by its compression number
  * but will be sorted in the bucket by its checksum.
  */
-int add_value(string &value);
+int add_value(string &value){
+    bucket_node* tmp_entry = entry_point;
+    value_node* new_node;
+
+    /* If this is the first entry, create the entry point, then have its
+     * value_node pointer set to the new value node 
+     */
+    if(tmp_entry == NULL){
+        /* Initialise two new nodes. */
+        tmp_entry = (bucket_node*)malloc(sizeof(bucket_node));
+        new_node = (value_node*)malloc(sizeof(value_node));
+
+        /* Fill data points */
+        init_bucket(tmp_entry, value);
+        init_value(new_node, value);
+
+        /* Link the two nodes */
+        bucket_to_node(tmp_entry, new_node);
+
+        // /* Set entry_point to point to tmp_entry */
+        // entry_point = tmp_entry;
+
+        cout << "\nThe entry points key is: " << entry_point->compression_number << "\n";
+        cout << "The entry point's address is: " << entry_point << "\n";
+        cout << "\nThe new nodes value is: " << new_node->value << "\n";
+        cout << "The new nodes key is: " << new_node->key << "\n";
+        cout << "The new nodes compression number is: " << new_node->compression_number << "\n";
+        cout << "The new nodes bucket address is: " << new_node->bucket << "\n\n";
+
+        return 0;
+    }
+
+    return 0;
+};
 
 
 ///////////////////////////////////////////////////////////////////////////
 /* Algorithms for creating checksums and compression numbers */
 ///////////////////////////////////////////////////////////////////////////
 
-/* Produce a checksum of the value string. */
+/* Produce a key/checksum of the value string. */
 int calc_checksum(string &value){
     int checksum = 0;
     int tmp = 0;
-    cout << value << " from the checksum function\n";
 
     for(int i = 0; i < value.length(); i++){
         tmp = (unsigned char)value[i];
-        cout << value[i] << " has the decimal value of: " << tmp << "\n";
         checksum = checksum + tmp;
     }
-    cout << "\n";
     return checksum;
 };
 
@@ -105,4 +141,43 @@ int* compress(int checksum, int* pIter){
         compress(checksum, pIter);
     }
     return pIter;
+};
+
+
+
+///////////////////////////////////////////////////////////////////////////
+/* Supporting functions */
+///////////////////////////////////////////////////////////////////////////
+
+bool bucket_exists(int compression_number, bucket_node* pBucket);
+
+void init_bucket(bucket_node* tmp_entry, string &value){
+    int i = 0;
+    int* compression_number = &i;
+    int key = calc_checksum(value);
+
+    tmp_entry->compression_number = *(compress(key, compression_number));
+    entry_point = tmp_entry;
+
+    return;
+};
+
+void init_value(value_node* new_node, string &value){
+    int i = 0;
+    int* compression_number = &i;
+
+    new_node->key = calc_checksum(value);
+    new_node->compression_number = *(compress(new_node->key, compression_number));
+    new_node->value = value;
+
+    return;
+};
+
+void bucket_to_node(bucket_node* pBucket, value_node* pValue){
+    pBucket->value = pValue;
+    pValue->bucket = pBucket;
+
+    cout << "linking nodes... entry_point->compression_number: " << entry_point->compression_number << "\n";
+
+    return;
 };

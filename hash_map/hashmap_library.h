@@ -50,7 +50,8 @@ int delete_bucket(bucket_node* head_node);
 /* Add elements functions */
 
 int add_bucket(int compression_number);
-int add_value(bucket_node** entry_point, string &value);
+int add_value(struct bucket_node** entry_point, string &value);
+int push_bucket(struct bucket_node** entry_point, struct bucket_node** new_bucket);
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -65,8 +66,14 @@ int* compress(int checksum, int* pIter);
 /* Supporting functions */
 ///////////////////////////////////////////////////////////////////////////
 
-bool bucket_exists(int compression_number);
-void init_bucket(bucket_node** new_bucket, string &value);
-void init_value(value_node** new_node, string &value);
-void bucket_to_node(bucket_node** pBucket, value_node* pValue);
+bool bucket_exists(int compression_number, struct bucket_node** entry_point);
+void init_bucket(struct bucket_node** new_bucket, string &value, int key);
+void init_value(struct value_node** new_node, string &value, int key);
+void bucket_to_node(struct bucket_node** pBucket, struct value_node* pValue);
 
+// cout << "\nThe entry point's key is: " << (*entry_point)->compression_number << "\n";
+// cout << "The entry point's address is: " << entry_point << "\n";
+// cout << "\nThe new nodes value is: " << new_node->value << "\n";
+// cout << "The new nodes key is: " << new_node->key << "\n";
+// cout << "The new nodes compression number is: " << new_node->compression_number << "\n";
+// cout << "The new nodes bucket address is: " << new_node->bucket << "\n\n";

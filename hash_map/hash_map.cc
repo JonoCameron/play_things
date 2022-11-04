@@ -14,12 +14,17 @@ int main(){
     print_map(&entry_point);
 
     string var1 = "bonjour";
+    string var2 = "hi";
+    string var3 = "hello";
 
-    add_value(&entry_point, var);
+    add_value(&entry_point, var1);
+    add_value(&entry_point, var2);
+    add_value(&entry_point, var3);
 
     hello_library();
 
-    cout << "Entry_point->compression_number: " << entry_point->compression_number << "\n";
+    // cout << "Entry_point->compression_number : " << entry_point->compression_number << "\n";
+    // cout << "Entry_point->value->value : " << entry_point->value->value << "\n"; 
     print_map(&entry_point);
     return 0;
 }

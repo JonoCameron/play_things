@@ -18,17 +18,18 @@ int print_map(struct bucket_node** entry_point){
         cout << "The hash table is empty.\n";
         return -1;
     }
-
     struct bucket_node* tmp_bucket = *entry_point;
     struct value_node* tmp_value = tmp_bucket->value;
     do{
+        tmp_value = tmp_bucket->value;
         cout << "Key: " << tmp_bucket->compression_number << " -> ";
         do{
             cout << tmp_value->value << " -> ";
             tmp_value = tmp_value->next_node;
         }while(tmp_value);
         cout << "NULL\n";
-    }while(tmp_bucket->next_node);
+        tmp_bucket = tmp_bucket->next_node;
+    }while(tmp_bucket);
     return 0;
 };
 
@@ -62,9 +63,14 @@ int add_bucket(int compression_number);
  * The node will be added to its bucket by its compression number
  * but will be sorted in the bucket by its checksum.
  */
-int add_value(bucket_node** entry_point, string &value){
-    // struct bucket_node* tmp_entry = *entry_point;
+int add_value(struct bucket_node** entry_point, string &value){
     struct value_node* new_node;
+    struct bucket_node* new_bucket;
+    struct bucket_node* tmp;
+    int i = 0;
+    int* pIter = &i;
+    int checksum = calc_checksum(value);
+    int key = *(compress(checksum, pIter));
 
     /* If this is the first entry, create the entry point, then have its
      * value_node pointer set to the new value node 
@@ -75,26 +81,46 @@ int add_value(bucket_node** entry_point, string &value){
         new_node = new value_node();
 
         /* Fill data points */
-        init_bucket(entry_point, value);
+        init_bucket(entry_point, value, checksum);
 
-        init_value(&new_node, value);
+        init_value(&new_node, value, checksum);
 
         /* Link the two nodes */
         bucket_to_node(entry_point, new_node);
 
-        // /* Set entry_point to point to tmp_entry */
-        // *entry_point = tmp_entry;
-
-        cout << "\nThe entry point's key is: " << (*entry_point)->compression_number << "\n";
-        cout << "The entry point's address is: " << entry_point << "\n";
-        cout << "\nThe new nodes value is: " << new_node->value << "\n";
-        cout << "The new nodes key is: " << new_node->key << "\n";
-        cout << "The new nodes compression number is: " << new_node->compression_number << "\n";
-        cout << "The new nodes bucket address is: " << new_node->bucket << "\n\n";
-
         return 0;
     }
+    
+    tmp = *entry_point;
+    
+    /* Check out whether we need a new bucket */
+    if(bucket_exists(key, entry_point)){
+        cout << "Say hello " << value <<"\n";
+    }else{
+        cout << "You donkey, the bucket does not exist! Now we have to make a new one!\n";
 
+        /* Initialise nodes */
+        new_bucket = new bucket_node();
+        new_node = new value_node();
+        init_bucket(&new_bucket, value, checksum);
+        init_value(&new_node, value, checksum);
+
+        /* Link nodes */
+        bucket_to_node(&new_bucket, new_node);
+
+        /* Push to top of bucket LL */
+        push_bucket(entry_point, &new_bucket);
+
+        
+    }
+
+    return 0;
+};
+
+int push_bucket(struct bucket_node** entry_point, struct bucket_node** new_bucket){
+    (*entry_point)->prev_node = *new_bucket;
+    (*new_bucket)->next_node = *entry_point;
+    *entry_point = *new_bucket;
     return 0;
 };
 
@@ -112,6 +138,7 @@ int calc_checksum(string &value){
         tmp = (unsigned char)value[i];
         checksum = checksum + tmp;
     }
+    cout << "CHECKSUM: " << checksum << "\n";
     return checksum;
 };
 
@@ -149,23 +176,33 @@ int* compress(int checksum, int* pIter){
 /* Supporting functions */
 ///////////////////////////////////////////////////////////////////////////
 
-bool bucket_exists(int compression_number, bucket_node* pBucket);
 
-void init_bucket(bucket_node** new_bucket, string &value){
+bool bucket_exists(int compression_number, struct bucket_node** entry_point){
+    struct bucket_node* tmp = *entry_point;
+    do{
+        if(tmp->compression_number == compression_number){
+            return true;
+        }
+        tmp = tmp->next_node;
+    }while(tmp);
+    return false;
+};
+
+void init_bucket(struct bucket_node** new_bucket, string &value, int key){
     int i = 0;
     int* compression_number = &i;
-    int key = calc_checksum(value);
+//    int key = calc_checksum(value);
 
     (*new_bucket)->compression_number = *(compress(key, compression_number));
 
     return;
 };
 
-void init_value(value_node** new_node, string &value){
+void init_value(struct value_node** new_node, string &value, int key){
     int i = 0;
     int* compression_number = &i;
 
-    (*new_node)->key = calc_checksum(value);
+    (*new_node)->key = key;
     (*new_node)->compression_number = *(compress((*new_node)->key, compression_number));
     (*new_node)->value = value;
 
@@ -175,8 +212,6 @@ void init_value(value_node** new_node, string &value){
 void bucket_to_node(bucket_node** pBucket, value_node* pValue){
     (*pBucket)->value = pValue;
     pValue->bucket = *pBucket;
-
-//    cout << "linking nodes... entry_point->compression_number: " << entry_point->compression_number << "\n";
 
     return;
 };

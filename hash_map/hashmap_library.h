@@ -36,7 +36,7 @@ void hello_library();
 
 /* Print functions */
 
-int print_map(bucket_node* entry_point);
+int print_map(struct bucket_node** entry_point);
 int print_buckets();
 int print_compression_number();
 
@@ -50,7 +50,7 @@ int delete_bucket(bucket_node* head_node);
 /* Add elements functions */
 
 int add_bucket(int compression_number);
-int add_value(bucket_node* entry_point, string &value);
+int add_value(bucket_node** entry_point, string &value);
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -66,7 +66,7 @@ int* compress(int checksum, int* pIter);
 ///////////////////////////////////////////////////////////////////////////
 
 bool bucket_exists(int compression_number);
-void init_bucket(bucket_node* tmp_entry, string &value);
-void init_value(value_node* new_node, string &value);
-void bucket_to_node(bucket_node* pBucket, value_node* pValue);
+void init_bucket(bucket_node** new_bucket, string &value);
+void init_value(value_node** new_node, string &value);
+void bucket_to_node(bucket_node** pBucket, value_node* pValue);
 

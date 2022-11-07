@@ -76,6 +76,8 @@ int add_value(struct bucket_node** entry_point, string &value){
      * value_node pointer set to the new value node 
      */
     if(*entry_point == NULL){
+        cout << "The bucket for key " << key << " does not exist. Making a new one...\n";
+        
         /* Initialise two new nodes. */
         *entry_point = new bucket_node();
         new_node = new value_node();
@@ -95,9 +97,16 @@ int add_value(struct bucket_node** entry_point, string &value){
     
     /* Check out whether we need a new bucket */
     if(bucket_exists(key, entry_point)){
-        cout << "Say hello " << value <<"\n";
+        // cout << "Say hello " << value <<"\n";
+
+        new_node = new value_node();
+        init_value(&new_node, value, checksum);
+        find_bucket(&tmp, checksum);
+        //cout << "in add value, tmp->compression_number: " << tmp->compression_number << "\n";
+
+        append_value(&tmp->value, &new_node);
     }else{
-        cout << "You donkey, the bucket does not exist! Now we have to make a new one!\n";
+        cout << "The bucket for key " << key << " does not exist. Making a new one...\n";
 
         /* Initialise nodes */
         new_bucket = new bucket_node();
@@ -110,8 +119,6 @@ int add_value(struct bucket_node** entry_point, string &value){
 
         /* Push to top of bucket LL */
         push_bucket(entry_point, &new_bucket);
-
-        
     }
 
     return 0;
@@ -121,6 +128,16 @@ int push_bucket(struct bucket_node** entry_point, struct bucket_node** new_bucke
     (*entry_point)->prev_node = *new_bucket;
     (*new_bucket)->next_node = *entry_point;
     *entry_point = *new_bucket;
+    return 0;
+};
+
+int append_value(struct value_node** head_value, struct value_node** new_value){
+    //cout << "In append value. : " << (*head_value)->value << "\n";
+    while((*head_value)->next_node != NULL){
+        (*head_value) = (*head_value)->next_node;
+    }
+    (*head_value)->next_node = (*new_value);
+    (*new_value)->prev_node = (*head_value);
     return 0;
 };
 
@@ -138,7 +155,6 @@ int calc_checksum(string &value){
         tmp = (unsigned char)value[i];
         checksum = checksum + tmp;
     }
-    cout << "CHECKSUM: " << checksum << "\n";
     return checksum;
 };
 
@@ -186,6 +202,17 @@ bool bucket_exists(int compression_number, struct bucket_node** entry_point){
         tmp = tmp->next_node;
     }while(tmp);
     return false;
+};
+
+int find_bucket(struct bucket_node** tmp_bucket, int key){
+    while((*tmp_bucket)->next_node != NULL){
+        cout << "Searching...\n";
+        (*tmp_bucket) = (*tmp_bucket)->next_node;
+        
+    }
+    //cout << "in find bucket, tmp->compression_number: " << (*tmp_bucket)->compression_number << "\n";
+
+    return 0;
 };
 
 void init_bucket(struct bucket_node** new_bucket, string &value, int key){

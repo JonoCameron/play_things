@@ -52,6 +52,7 @@ int delete_bucket(bucket_node* head_node);
 int add_bucket(int compression_number);
 int add_value(struct bucket_node** entry_point, string &value);
 int push_bucket(struct bucket_node** entry_point, struct bucket_node** new_bucket);
+int append_value(struct value_node** head_value, struct value_node** new_value);
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -67,6 +68,7 @@ int* compress(int checksum, int* pIter);
 ///////////////////////////////////////////////////////////////////////////
 
 bool bucket_exists(int compression_number, struct bucket_node** entry_point);
+int find_bucket(struct bucket_node** tmp_bucket, int key);
 void init_bucket(struct bucket_node** new_bucket, string &value, int key);
 void init_value(struct value_node** new_node, string &value, int key);
 void bucket_to_node(struct bucket_node** pBucket, struct value_node* pValue);

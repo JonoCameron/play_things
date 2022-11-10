@@ -44,7 +44,8 @@ int print_compression_number();
 /* Delete functions */
 
 int delete_value(int key, char** value);
-int delete_bucket(bucket_node* head_node);
+int delete_bucket(struct bucket_node** entry_point);
+int delete_map(struct bucket_node** head_node);
 
 
 /* Add elements functions */

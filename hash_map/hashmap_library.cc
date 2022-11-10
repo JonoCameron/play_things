@@ -52,7 +52,19 @@ int delete_value(int key, char** value);
 /* Traverse key node, then delete the value nodes. Then hop to the
  * next key node.
  */
-int delete_bucket(bucket_node* head_node);
+int delete_bucket(struct bucket_node** head_node);
+
+/* Delete the entire map */
+int delete_map(struct bucket_node** entry_point){
+    if(*entry_point == NULL){
+        cout << "The hash table is empty.\n";
+        return -1;
+    }
+    struct bucket_node* tmp_bucket = *entry_point;
+    struct value_node* tmp_value = tmp_bucket->value;
+    cout << "man i tried today but i'm tired\n";
+    return 0;
+};
 
 /* Add elements functions */
 

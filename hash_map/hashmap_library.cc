@@ -19,7 +19,7 @@ int print_map(struct bucket_node** entry_point){
         return -1;
     }
     struct bucket_node* tmp_bucket = *entry_point;
-    struct value_node* tmp_value = tmp_bucket->value;
+    struct value_node* tmp_value;
     do{
         tmp_value = tmp_bucket->value;
         cout << "Key: " << tmp_bucket->compression_number << " -> ";
@@ -54,15 +54,33 @@ int delete_value(int key, char** value);
  */
 int delete_bucket(struct bucket_node** head_node);
 
-/* Delete the entire map */
+/* Delete the entire map.
+ * Two (do) while loops. The nested one will delete the values of a bucket.
+ * The outer loop will delete the buckets. */
 int delete_map(struct bucket_node** entry_point){
     if(*entry_point == NULL){
         cout << "The hash table is empty.\n";
         return -1;
     }
     struct bucket_node* tmp_bucket = *entry_point;
-    struct value_node* tmp_value = tmp_bucket->value;
-    cout << "man i tried today but i'm tired\n";
+    struct value_node* tmp_value;
+
+    while(tmp_bucket->next_node){
+        tmp_value = tmp_bucket->value;
+        while(tmp_value->next_node){
+            tmp_value = tmp_value->next_node;
+            free(tmp_value->prev_node);
+            tmp_value->prev_node = NULL;
+        }
+        free(tmp_value);
+        tmp_bucket = tmp_bucket->next_node;
+        free(tmp_bucket->prev_node);
+        tmp_bucket->prev_node = NULL;
+    }   
+    free(tmp_bucket);
+    free(entry_point);
+    /* Imagine if this was all it took to free all the memory associated with this process */
+    *entry_point = NULL;
     return 0;
 };
 
@@ -230,7 +248,6 @@ int find_bucket(struct bucket_node** tmp_bucket, int key){
 void init_bucket(struct bucket_node** new_bucket, string &value, int key){
     int i = 0;
     int* compression_number = &i;
-//    int key = calc_checksum(value);
 
     (*new_bucket)->compression_number = *(compress(key, compression_number));
 

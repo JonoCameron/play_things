@@ -24,5 +24,8 @@ int main(int argc, char* argv[]){
     add_value(&entry_point, var4);
 
     print_map(&entry_point);
+    cout << "before delete map\n";
+    delete_map(&entry_point);
+    print_map(&entry_point);
     return 0;
 }

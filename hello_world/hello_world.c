@@ -6,5 +6,7 @@ int main(){
         say_hello();
     }
 
+    printf("%3d\n", a); // Fancy that, it prints two spaces. (From my Sportable interview).
+
     return 0;
 }

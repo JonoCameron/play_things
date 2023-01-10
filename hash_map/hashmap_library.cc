@@ -78,7 +78,6 @@ int delete_map(struct bucket_node** entry_point){
         tmp_bucket->prev_node = NULL;
     }   
     free(tmp_bucket);
-    free(entry_point);
     /* Imagine if this was all it took to free all the memory associated with this process */
     *entry_point = NULL;
     return 0;

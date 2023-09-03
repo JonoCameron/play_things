@@ -31,7 +31,7 @@ void *gpio_map;
 volatile unsigned *gpio;
 
 // GPIO macros. I'll let you figure them out the same way I had to. It's good for you x
-#define INP_GPIO(g) *(gpio+((g)/10)) &= ~(7<<(((g)%10)*3))
+#define INP_GPIO(g) *(gpio+((g)/10)) &= ~(0<<(((g)%10)*3))
 #define OUT_GPIO(g) *(gpio+((g)/10)) |=  (1<<(((g)%10)*3))
 
 #define GPIO_SET *(gpio+7)
